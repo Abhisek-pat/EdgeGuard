@@ -1,0 +1,35 @@
+#pragma once
+
+#define EDGEGUARD_PROJECT_NAME           "EdgeGuard"
+#define EDGEGUARD_FW_VERSION             "0.1.0"
+#define EDGEGUARD_DEVICE_ID              "esp32cam-01"
+
+#define EDGEGUARD_CAMERA_PERIOD_MS       500
+#define EDGEGUARD_HEARTBEAT_PERIOD_MS    5000
+#define EDGEGUARD_EVENT_COOLDOWN_MS      10000
+
+#define EDGEGUARD_FRAME_QUEUE_LEN        2
+#define EDGEGUARD_RESULT_QUEUE_LEN       4
+
+#define EDGEGUARD_DEFAULT_THRESHOLD      0.75f
+
+// Wifi defines
+#define EDGEGUARD_WIFI_SSID             "xxxxx_2.4G"
+#define EDGEGUARD_WIFI_PASSWORD         "xxxxxxxxxx"
+#define EDGEGUARD_WIFI_MAXIMUM_RETRY    10
+#define EDGEGUARD_HTTP_SERVER_PORT      80
+
+// MQTT defines
+#define EDGEGUARD_MQTT_BROKER_URI                "mqtt://192.168.1.71:1883"
+#define EDGEGUARD_MQTT_CLIENT_ID                 "edgeguard-esp32cam-01"
+#define EDGEGUARD_MQTT_USERNAME                  ""
+#define EDGEGUARD_MQTT_PASSWORD                  ""
+#define EDGEGUARD_MQTT_TOPIC_ROOT                "edgeguard/device"
+#define EDGEGUARD_MQTT_HEALTH_PUBLISH_PERIOD_MS  10000
+
+#define EDGEGUARD_ALERT_LED_GPIO             4
+#define EDGEGUARD_ALERT_LED_ON_MS            150
+#define EDGEGUARD_ALERT_LED_OFF_MS           120
+#define EDGEGUARD_ALERT_LED_BLINK_COUNT      3
+
+#define EDGEGUARD_EVENT_QUEUE_LEN            4

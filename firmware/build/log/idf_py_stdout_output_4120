@@ -1,0 +1,201 @@
+ets ���ets ������� 00:2���SH�HH�t:0x1 	�]I=9}ISET),b��0x12 i%}MQ_FLASH%==Q�
+��˥�ͥ�� 0, SPR���5
+clk_d.����0�\E���0A0,d_d.����0,�.�����0�0,hd_dr��x00,w}drv:0x�
+mod�'T� clk��div:�H�����0x3fff00&blen:62�SHload'��0078��,len:LMS�j
+l�X����00�400,lYK�j
+ho� tail �����4C!�+��0x�80404����38j
+entr^�x4008��c
+[0;32mI (30) boot: ESP-IDF v5.4-rc1-1-g25a1ad7e98 2nd stage bootloader[0m
+[0;32mI (30) boot: compile time Apr 20 2026 18:58:52[0m
+[0;32mI (30) boot: Multicore bootloader[0m
+[0;32mI (33) boot: chip revision: v1.1[0m
+[0;32mI (36) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (39) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (43) boot.esp32: SPI Flash Size : 4MB[0m
+[0;32mI (46) boot: Enabling RNG early entropy source...[0m
+[0;32mI (51) boot: Partition Table:[0m
+[0;32mI (54) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (60) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (66) boot:  1 otadata          OTA data         01 00 0000f000 00002000[0m
+[0;32mI (73) boot:  2 phy_init         RF data          01 01 00011000 00001000[0m
+[0;32mI (79) boot:  3 factory          factory app      00 00 00020000 00180000[0m
+[0;32mI (86) boot:  4 storage          Unknown data     01 82 001a0000 00260000[0m
+[0;32mI (92) boot: End of partition table[0m
+[0;32mI (96) boot: Defaulting to factory image[0m
+[0;32mI (99) esp_image: segment 0: paddr=00020020 vaddr=3f400020 size=25764h (153444) map[0m
+[0;32mI (159) esp_image: segment 1: paddr=0004578c vaddr=3ff80000 size=0001ch (    28) load[0m
+[0;32mI (160) esp_image: segment 2: paddr=000457b0 vaddr=3ffb0000 size=067a8h ( 26536) load[0m
+[0;32mI (173) esp_image: segment 3: paddr=0004bf60 vaddr=40080000 size=040b8h ( 16568) load[0m
+[0;32mI (180) esp_image: segment 4: paddr=00050020 vaddr=400d0020 size=a3d28h (671016) map[0m
+[0;32mI (409) esp_image: segment 5: paddr=000f3d50 vaddr=400840b8 size=183d4h ( 99284) load[0m
+[0;32mI (462) boot: Loaded app from partition at offset 0x20000[0m
+[0;32mI (462) boot: Disabling RNG early entropy source...[0m
+[0;32mI (472) quad_psram: This chip is ESP32-D0WD[0m
+[0;32mI (474) esp_psram: Found 8MB PSRAM device[0m
+[0;32mI (474) esp_psram: Speed: 40MHz[0m
+[0;32mI (474) esp_psram: PSRAM initialized, cache is in low/high (2-core) mode.[0m
+[0;33mW (480) esp_psram: Virtual address not enough for PSRAM, map as much as we can. 4MB is mapped[0m
+[0;32mI (488) cpu_start: Multicore app[0m
+[0;32mI (1393) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (1401) cpu_start: Pro cpu start user code[0m
+[0;32mI (1401) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (1401) app_init: Application information:[0m
+[0;32mI (1402) app_init: Project name:     edgeguard[0m
+[0;32mI (1406) app_init: App version:      9daf915-dirty[0m
+[0;32mI (1410) app_init: Compile time:     Apr 20 2026 18:56:14[0m
+[0;32mI (1415) app_init: ELF file SHA256:  28cea2a07...[0m
+[0;32mI (1420) app_init: ESP-IDF:          v5.4-rc1-1-g25a1ad7e98[0m
+[0;32mI (1425) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (1429) efuse_init: Max chip rev:     v3.99 [0m
+[0;32mI (1433) efuse_init: Chip rev:         v1.1[0m
+[0;32mI (1437) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (1444) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (1449) heap_init: At 3FFBB3E0 len 00024C20 (147 KiB): DRAM[0m
+[0;32mI (1454) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM[0m
+[0;32mI (1459) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM[0m
+[0;32mI (1465) heap_init: At 4009C48C len 00003B74 (14 KiB): IRAM[0m
+[0;32mI (1471) esp_psram: Adding pool of 4096K of PSRAM memory to heap allocator[0m
+[0;32mI (1478) spi_flash: detected chip: generic[0m
+[0;32mI (1481) spi_flash: flash io: dio[0m
+[0;32mI (1485) main_task: Started on CPU0[0m
+[0;32mI (1495) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+[0;32mI (1495) main_task: Calling app_main()[0m
+[0;32mI (1495) edgeguard_main: booting EdgeGuard v0.1.0[0m
+[0;32mI (1495) app_state: state initialized[0m
+[0;32mI (1505) storage: initialized (scaffold)[0m
+[0;32mI (1505) led_alert: initialized (scaffold)[0m
+[0;32mI (1505) camera_service: PSRAM initialized: yes[0m
+[0;32mI (1515) camera_service: camera config: pixel_format=4 frame_size=6 jpeg_quality=12 fb_count=2[0m
+[0;32mI (1525) gpio: GPIO[25]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:2 [0m
+[0;32mI (1535) cam_hal: cam init ok[0m
+[0;32mI (1535) sccb-ng: pin_sda 26 pin_scl 27[0m
+[0;32mI (1535) sccb-ng: sccb_i2c_port=1[0m
+[0;32mI (1545) gpio: GPIO[32]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1575) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2[0m
+[0;32mI (1575) camera: Detected OV2640 camera[0m
+[0;32mI (1575) camera: Detected camera at address=0x30[0m
+[0;32mI (1645) cam_hal: PSRAM DMA mode disabled[0m
+[0;32mI (1645) cam_hal: buffer_size: 32768, half_buffer_size: 4096, node_buffer_size: 2048, node_cnt: 16, total_cnt: 3[0m
+[0;32mI (1655) cam_hal: Allocating 15360 Byte frame buffer in PSRAM[0m
+[0;32mI (1655) cam_hal: Allocating 15360 Byte frame buffer in PSRAM[0m
+[0;32mI (1665) cam_hal: cam config ok[0m
+[0;32mI (1665) ov2640: Set PLL: clk_2x: 0, clk_div: 0, pclk_auto: 0, pclk_div: 8[0m
+[0;32mI (1745) camera_service: camera initialized successfully[0m
+[0;32mI (1765) camera_service: capture ok: 320x240 len=4719 format=4 time=22749 us[0m
+[0;32mI (1765) inference_engine: initialized (scaffold)[0m
+[0;32mI (1765) event_manager: initialized (scaffold)[0m
+[0;32mI (1825) wifi:wifi driver task: 3ffd5bb4, prio:23, stack:6656, core=0[0m
+[0;32mI (1845) wifi:wifi firmware version: 48ea317a7[0m
+[0;32mI (1845) wifi:wifi certification version: v7.0[0m
+[0;32mI (1845) wifi:config NVS flash: enabled[0m
+[0;32mI (1845) wifi:config nano formatting: disabled[0m
+[0;32mI (1845) wifi:Init data frame dycam_hal: NO-SOI - JPEG start marker missing[0m
+cam_hal: NO-SOI - JPEG start marker missing
+namic rx buffer num: 32
+[0;32mI (1865) wifi:Init static rx mgmt buffer num: 5[0m
+[0;32mI (1865) wifi:Init management short buffer num: 32[0m
+[0;32mI (1865) wifi:Init dynamic tx buffer num: 32[0m
+[0;32mI (1875) wifi:Init static rx buffer size: 1600[0m
+[0;32mI (1875) wifi:Init static rx buffer num: 10[0m
+[0;32mI (1885) wifi:Init dynamic rx buffer num: 32[0m
+[0;32mI (1885) wifi_init: rx ba win: 6[0m
+[0;32mI (1885) wifi_init: accept mbox: 6[0m
+[0;32mI (1895) wifi_init: tcpip mbox: 32[0m
+[0;32mI (1895) wifi_init: udp mbox: 6[0m
+[0;32mI (1895) wifi_init: tcp mbox: 6[0m
+[0;32mI (1895) wifi_init: tcp tx win: 5760[0m
+[0;32mI (1905) wifi_init: tcp rx win: 5760[0m
+[0;32mI (1905) wifi_init: tcp mss: 1440[0m
+[0;32mI (1905) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (1915) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;32mI (1925) phy_init: phy_version 4840,02e0d70,Sep  2 2024,19:39:07[0m
+[0;33mW (1925) phy_init: failed to load RF calibration data (0xffffffff), falling back to full calibration[0m
+[0;33mW (1995) phy_init: saving new calibration data because of checksum failure, mode(2)[0m
+[0;32mI (2025) wifi:mode : sta (d4:8c:49:b9:ac:e8)[0m
+[0;32mI (2025) wifi:enable tsf[0m
+[0;32mI (2025) network_manager: Wi-Fi init complete[0m
+[0;32mI (2025) network_manager: Wi-Fi started, connecting to SSID: 42098_2.4G[0m
+[0;32mI (2025) mqtt_service: initialized (scaffold)[0m
+[0;32mI (2035) web_server: dashboard task initialized[0m
+[0;32mI (2035) edgeguard_main: heartbeat | wifi=0 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=0s[0m
+[0;32mI (2045) edgeguard_main: system initialized[0m
+[0;32mI (2055) main_task: Returned from app_main()[0m
+[0;32mI (3015) wifi:new:<9,0>, old:<1,0>, ap:<255,255>, sta:<9,0>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (3015) wifi:state: init -> auth (0xb0)[0m
+[0;32mI (3025) wifi:state: auth -> assoc (0x0)[0m
+[0;32mI (3025) wifi:state: assoc -> run (0x10)[0m
+[0;32mI (3135) wifi:connected with 42098_2.4G, aid = 7, channel 9, BW20, bssid = 04:25:e0:64:43:09[0m
+[0;32mI (3135) wifi:security: WPA2-PSK, phy: bgn, rssi: -59[0m
+[0;32mI (3165) wifi:pm start, type: 1[0m
+
+[0;32mI (3165) wifi:dp: 1, bi: 102400, li: 3, scale listen interval from 307200 us to 307200 us[0m
+[0;32mI (3165) network_manager: connected to access point[0m
+[0;32mI (3215) wifi:AP's beacon interval = 102400 us, DTIM period = 1[0m
+[0;32mI (3325) wifi:<ba-add>idx:0 (ifx:0, 04:25:e0:64:43:09), tid:0, ssn:2, winSize:64[0m
+[0;32mI (4535) esp_netif_handlers: sta ip: 192.168.1.207, mask: 255.255.255.0, gw: 192.168.1.254[0m
+[0;32mI (4535) network_manager: got ip: 192.168.1.207[0m
+[0;32mI (5035) web_server: dashboard started on http://192.168.1.207:80[0m
+[0;32mI (7045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=5s[0m
+[0;32mI (12045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=10s[0m
+[0;32mI (17045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=15s[0m
+[0;32mI (22045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=20s[0m
+[0;32mI (27045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=25s[0m
+[0;32mI (32045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=30s[0m
+[0;32mI (37045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=35s[0m
+[0;32mI (42045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=40s[0m
+[0;32mI (47045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=45s[0m
+[0;32mI (52045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=50s[0m
+[0;32mI (57045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=55s[0m
+[0;32mI (62045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=60s[0m
+[0;32mI (67045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=65s[0m
+[0;32mI (72045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=70s[0m
+[0;32mI (77045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=75s[0m
+[0;32mI (82045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=80s[0m
+[0;32mI (87045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=85s[0m
+[0;32mI (92045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=90s[0m
+[0;32mI (97045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=95s[0m
+[0;32mI (102045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=100s[0m
+[0;32mI (107045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=105s[0m
+[0;32mI (112045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=110s[0m
+[0;33mW (116085) httpd_uri: httpd_uri: URI '/favicon.ico' not found[0m
+[0;33mW (116085) httpd_txrx: httpd_resp_send_err: 404 Not Found - Nothing matches the given URI[0m
+[0;32mI (117045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=115s[0m
+[0;32mI (122045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=120s[0m
+[0;32mI (127045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=125s[0m
+[0;32mI (132045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=130s[0m
+[0;32mI (137045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=135s[0m
+[0;32mI (142045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=140s[0m
+[0;32mI (147045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=145s[0m
+[0;32mI (152045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=150s[0m
+[0;32mI (157045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=155s[0m
+[0;32mI (162045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=160s[0m
+[0;32mI (167045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=165s[0m
+[0;32mI (172045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=170s[0m
+[0;32mI (177045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=175s[0m
+[0;32mI (182045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=180s[0m
+[0;32mI (187045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=185s[0m
+[0;32mI (192045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=190s[0m
+[0;32mI (197045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=195s[0m
+[0;32mI (202045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=200s[0m
+[0;32mI (207045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=205s[0m
+[0;32mI (212045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=210s[0m
+[0;32mI (217045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=215s[0m
+[0;32mI (222045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=220s[0m
+[0;32mI (227045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=225s[0m
+[0;32mI (232045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=230s[0m
+[0;32mI (237045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=235s[0m
+[0;32mI (242045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=240s[0m
+[0;32mI (247045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=245s[0m
+[0;32mI (252045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=250s[0m
+[0;32mI (257045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=255s[0m
+[0;32mI (262045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=260s[0m
+[0;32mI (267045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=265s[0m
+[0;32mI (272045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=270s[0m
+[0;32mI (277045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=275s[0m
+[0;32mI (282045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=280s[0m
+[0;32mI (287045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=285s[0m
+[0;32mI (292045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=290s[0m
+[0;32mI (297045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=295s[0m
+[0;32mI (302045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=300s[0m
+[0;32mI (307045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=305s[0m
+[0;32mI (312045) edgeguard_main: heartbeat | wifi=1 mqtt=0 alert=0 events=0 threshold=0.75 last_conf=0.00 uptime=310s[0m

@@ -1,0 +1,19 @@
+idf_component_register(
+    SRCS
+        "main.c"
+        "app_state.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        freertos
+        log
+        esp_system
+        camera_service
+        inference_engine
+        event_manager
+        network_manager
+        mqtt_service
+        web_server
+        led_alert
+        storage
+)
