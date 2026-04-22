@@ -171,7 +171,7 @@ Make the project ready for CV, GitHub, and LinkedIn.
 
 ### Status
 - [ ] Not started
-- [ ] In progress
+- [x] In progress
 - [ ] Done
 
 ---
@@ -206,3 +206,7 @@ Event smoothing, cooldown logic, demo stability
 
 ### Week 6
 Documentation, visuals, final showcase video
+
+## Current Status
+
+EdgeGuard currently supports camera initialization, Wi-Fi connectivity, a local HTTP dashboard, MQTT health/event publishing, LED alert triggering, and a test event pipeline with cooldown handling. The next phase is integrating real on-device inference from live camera frames.
