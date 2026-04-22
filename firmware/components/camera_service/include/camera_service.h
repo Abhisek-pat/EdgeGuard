@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "esp_err.h"
@@ -20,6 +21,7 @@ typedef struct
     uint16_t last_width;
     uint16_t last_height;
     int64_t last_capture_time_us;
+    uint32_t capture_count;
 } camera_service_status_t;
 
 esp_err_t camera_service_init(void);

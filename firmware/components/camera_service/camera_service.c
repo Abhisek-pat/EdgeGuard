@@ -1,7 +1,6 @@
 #include "camera_service.h"
 
 #include <inttypes.h>
-#include <string.h>
 
 #include "esp_check.h"
 #include "esp_log.h"
@@ -11,7 +10,7 @@
 static const char *TAG = "camera_service";
 
 /*
- * AI-Thinker ESP32-CAM official/common pin map
+ * AI-Thinker ESP32-CAM pin map
  */
 #define CAM_PIN_PWDN   32
 #define CAM_PIN_RESET  -1
@@ -41,6 +40,7 @@ static camera_service_status_t s_status = {
     .last_width = 0,
     .last_height = 0,
     .last_capture_time_us = 0,
+    .capture_count = 0,
 };
 
 static camera_config_t build_camera_config(bool has_psram)
@@ -69,11 +69,6 @@ static camera_config_t build_camera_config(bool has_psram)
         .ledc_channel = LEDC_CHANNEL_0,
 
         .pixel_format = PIXFORMAT_JPEG,
-
-        /*
-         * Milestone 1 choice:
-         * keep this conservative and stable.
-         */
         .frame_size = has_psram ? FRAMESIZE_QVGA : FRAMESIZE_QQVGA,
         .jpeg_quality = has_psram ? 12 : 18,
         .fb_count = has_psram ? 2 : 1,
@@ -89,6 +84,7 @@ static void update_status_from_fb(const camera_fb_t *fb, int64_t capture_time_us
     s_status.last_width = fb->width;
     s_status.last_height = fb->height;
     s_status.last_capture_time_us = capture_time_us;
+    s_status.capture_count++;
 }
 
 esp_err_t camera_service_init(void)
@@ -131,20 +127,42 @@ esp_err_t camera_service_init(void)
     return ESP_OK;
 }
 
-esp_err_t camera_service_capture_test(void)
+camera_fb_t *camera_service_get_frame(void)
 {
-    ESP_RETURN_ON_FALSE(s_camera_ready, ESP_ERR_INVALID_STATE, TAG, "camera not initialized");
+    if (!s_camera_ready) {
+        ESP_LOGE(TAG, "camera not initialized");
+        return NULL;
+    }
 
     int64_t t0 = esp_timer_get_time();
     camera_fb_t *fb = esp_camera_fb_get();
     int64_t t1 = esp_timer_get_time();
 
     if (fb == NULL) {
-        ESP_LOGE(TAG, "camera capture test failed: framebuffer is NULL");
-        return ESP_FAIL;
+        ESP_LOGE(TAG, "esp_camera_fb_get returned NULL");
+        return NULL;
     }
 
     update_status_from_fb(fb, t1 - t0);
+    return fb;
+}
+
+void camera_service_return_frame(camera_fb_t *fb)
+{
+    if (fb != NULL) {
+        esp_camera_fb_return(fb);
+    }
+}
+
+esp_err_t camera_service_capture_test(void)
+{
+    ESP_RETURN_ON_FALSE(s_camera_ready, ESP_ERR_INVALID_STATE, TAG, "camera not initialized");
+
+    camera_fb_t *fb = camera_service_get_frame();
+    if (fb == NULL) {
+        ESP_LOGE(TAG, "camera capture test failed");
+        return ESP_FAIL;
+    }
 
     ESP_LOGI(
         TAG,
@@ -153,28 +171,11 @@ esp_err_t camera_service_capture_test(void)
         fb->height,
         (unsigned)fb->len,
         fb->format,
-        (int64_t)(t1 - t0)
+        s_status.last_capture_time_us
     );
 
-    esp_camera_fb_return(fb);
+    camera_service_return_frame(fb);
     return ESP_OK;
-}
-
-camera_fb_t *camera_service_get_frame(void)
-{
-    if (!s_camera_ready) {
-        ESP_LOGE(TAG, "camera not initialized");
-        return NULL;
-    }
-
-    return esp_camera_fb_get();
-}
-
-void camera_service_return_frame(camera_fb_t *fb)
-{
-    if (fb != NULL) {
-        esp_camera_fb_return(fb);
-    }
 }
 
 bool camera_service_is_ready(void)

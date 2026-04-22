@@ -20,6 +20,7 @@
 #include "web_server.h"
 #include "esp_check.h"
 #include "event_manager.h"
+#include "inference_engine.h"
 
 static const char *TAG = "edgeguard_main";
 
@@ -34,17 +35,18 @@ static void heartbeat_task(void *arg)
         app_state_set_uptime_sec((uint32_t)(xTaskGetTickCount() / configTICK_RATE_HZ));
 
         const event_manager_status_t *evt = event_manager_get_status();
+        const inference_engine_status_t *infer = inference_engine_get_status();
 
         ESP_LOGI(
             TAG,
-            "heartbeat | wifi=%d mqtt=%d alert=%d events=%" PRIu32 " threshold=%.2f last_conf=%.2f last_event=%s uptime=%" PRIu32 "s",
+            "heartbeat | wifi=%d mqtt=%d alert=%d events=%" PRIu32 " last_event=%s score=%.3f decision=%s uptime=%" PRIu32 "s",
             state->wifi_connected,
             state->mqtt_connected,
             state->alert_active,
             state->event_count,
-            state->threshold,
-            state->last_confidence,
             evt->last_event_name[0] ? evt->last_event_name : "none",
+            infer->last_score,
+            infer->last_decision,
             state->uptime_sec
         );
 
@@ -58,8 +60,8 @@ static esp_err_t init_all_services(void)
     ESP_RETURN_ON_ERROR(led_alert_init(), TAG, "led_alert init failed");
     ESP_RETURN_ON_ERROR(camera_service_init(), TAG, "camera_service init failed");
     ESP_RETURN_ON_ERROR(camera_service_capture_test(), TAG, "camera capture self-test failed");
-    ESP_RETURN_ON_ERROR(inference_engine_init(), TAG, "inference_engine init failed");
     ESP_RETURN_ON_ERROR(event_manager_init(), TAG, "event_manager init failed");
+    ESP_RETURN_ON_ERROR(inference_engine_init(), TAG, "inference_engine init failed");
     ESP_RETURN_ON_ERROR(network_manager_init(), TAG, "network_manager init failed");
     ESP_RETURN_ON_ERROR(mqtt_service_init(), TAG, "mqtt_service init failed");
     ESP_RETURN_ON_ERROR(web_server_init(), TAG, "web_server init failed");

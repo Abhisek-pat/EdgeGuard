@@ -14,6 +14,7 @@
 #include "event_manager.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "inference_engine.h"
 #include "mqtt_service.h"
 #include "network_manager.h"
 
@@ -41,7 +42,7 @@ static const char *INDEX_HTML =
 "</style>"
 "</head><body>"
 "<div class='title'>EdgeGuard</div>"
-"<div class='sub'>ESP32-CAM local health dashboard</div>"
+"<div class='sub'>ESP32-CAM live dashboard</div>"
 "<div class='grid'>"
 "<div class='card'><div class='label'>Wi-Fi</div><div class='value' id='wifi'>loading...</div></div>"
 "<div class='card'><div class='label'>IP Address</div><div class='value' id='ip'>loading...</div></div>"
@@ -50,6 +51,11 @@ static const char *INDEX_HTML =
 "<div class='card'><div class='label'>Camera Ready</div><div class='value' id='camera'>loading...</div></div>"
 "<div class='card'><div class='label'>Last Frame</div><div class='value' id='frame'>loading...</div></div>"
 "<div class='card'><div class='label'>Capture Time</div><div class='value' id='capture'>loading...</div></div>"
+"<div class='card'><div class='label'>Capture Count</div><div class='value' id='capture_count'>loading...</div></div>"
+"<div class='card'><div class='label'>Inference Score</div><div class='value' id='infer_score'>loading...</div></div>"
+"<div class='card'><div class='label'>Inference Decision</div><div class='value' id='infer_decision'>loading...</div></div>"
+"<div class='card'><div class='label'>Trigger Latched</div><div class='value' id='infer_latched'>loading...</div></div>"
+"<div class='card'><div class='label'>Baseline Bytes</div><div class='value' id='infer_baseline'>loading...</div></div>"
 "<div class='card'><div class='label'>Event Count</div><div class='value' id='event_count'>loading...</div></div>"
 "<div class='card'><div class='label'>Last Event</div><div class='value' id='last_event'>loading...</div></div>"
 "<div class='card'><div class='label'>Last Confidence</div><div class='value' id='last_conf'>loading...</div></div>"
@@ -71,6 +77,11 @@ static const char *INDEX_HTML =
 "    document.getElementById('camera').textContent=s.camera_ready ? 'Yes' : 'No';"
 "    document.getElementById('frame').textContent=s.frame_width + 'x' + s.frame_height + ' (' + s.last_frame_len + ' bytes)';"
 "    document.getElementById('capture').textContent=s.last_capture_time_us + ' us';"
+"    document.getElementById('capture_count').textContent=s.capture_count;"
+"    document.getElementById('infer_score').textContent=Number(s.inference_score).toFixed(3);"
+"    document.getElementById('infer_decision').textContent=s.inference_decision;"
+"    document.getElementById('infer_latched').textContent=s.trigger_latched ? 'Yes' : 'No';"
+"    document.getElementById('infer_baseline').textContent=s.baseline_frame_len + ' bytes';"
 "    document.getElementById('event_count').textContent=s.event_count;"
 "    document.getElementById('last_event').textContent=s.last_event_name || 'none';"
 "    document.getElementById('last_conf').textContent=Number(s.last_confidence).toFixed(2);"
@@ -81,9 +92,7 @@ static const char *INDEX_HTML =
 "}"
 "async function triggerTestEvent(){"
 "  try{"
-"    const r=await fetch('/api/test_event',{method:'POST'});"
-"    const s=await r.json();"
-"    console.log(s);"
+"    await fetch('/api/test_event',{method:'POST'});"
 "    setTimeout(refreshStatus, 300);"
 "  }catch(e){"
 "    console.log('test event failed', e);"
@@ -107,10 +116,11 @@ static esp_err_t status_get_handler(httpd_req_t *req)
     const camera_service_status_t *cam = camera_service_get_status();
     const mqtt_service_status_t *mqtt = mqtt_service_get_status();
     const event_manager_status_t *evt = event_manager_get_status();
+    const inference_engine_status_t *infer = inference_engine_get_status();
     const edgeguard_state_t *state = app_state_get();
     const uint32_t uptime_sec = (uint32_t)(esp_timer_get_time() / 1000000ULL);
 
-    char response[1400];
+    char response[1024];
 
     snprintf(
         response,
@@ -130,6 +140,14 @@ static esp_err_t status_get_handler(httpd_req_t *req)
         "\"frame_height\":%u,"
         "\"last_frame_len\":%u,"
         "\"last_capture_time_us\":%" PRId64 ","
+        "\"capture_count\":%" PRIu32 ","
+        "\"inference_score\":%.3f,"
+        "\"inference_decision\":\"%s\","
+        "\"trigger_latched\":%s,"
+        "\"baseline_frame_len\":%u,"
+        "\"inference_samples\":%" PRIu32 ","
+        "\"inference_triggers\":%" PRIu32 ","
+        "\"last_inference_time_us\":%" PRId64 ","
         "\"event_count\":%" PRIu32 ","
         "\"last_event_name\":\"%s\","
         "\"last_event_ts_ms\":%" PRIu64 ","
@@ -152,6 +170,14 @@ static esp_err_t status_get_handler(httpd_req_t *req)
         cam->last_height,
         (unsigned)cam->last_frame_len,
         cam->last_capture_time_us,
+        cam->capture_count,
+        (double)infer->last_score,
+        infer->last_decision,
+        infer->trigger_latched ? "true" : "false",
+        (unsigned)infer->baseline_frame_len,
+        infer->sample_count,
+        infer->trigger_count,
+        infer->last_inference_time_us,
         state->event_count,
         evt->last_event_name,
         evt->last_event_ts_ms,
@@ -189,6 +215,7 @@ static esp_err_t start_http_server(void)
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = EDGEGUARD_HTTP_SERVER_PORT;
     config.max_uri_handlers = 10;
+    config.stack_size = 10240;
 
     ESP_RETURN_ON_ERROR(httpd_start(&s_server, &config), TAG, "httpd_start failed");
 
