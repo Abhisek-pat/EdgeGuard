@@ -14,8 +14,8 @@
 #define EDGEGUARD_DEFAULT_THRESHOLD      0.75f
 
 // Wifi defines
-#define EDGEGUARD_WIFI_SSID             "XXXXXXXXX"
-#define EDGEGUARD_WIFI_PASSWORD         "XXXXXXXXX"
+#define EDGEGUARD_WIFI_SSID             "xxxxxxxx"
+#define EDGEGUARD_WIFI_PASSWORD         "xxxxxxxxx"
 #define EDGEGUARD_WIFI_MAXIMUM_RETRY    10
 #define EDGEGUARD_HTTP_SERVER_PORT      80
 

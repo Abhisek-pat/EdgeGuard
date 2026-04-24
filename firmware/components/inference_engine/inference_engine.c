@@ -11,6 +11,7 @@
 #include "event_manager.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "model_runner.h"
 
 static const char *TAG = "inference_engine";
 
@@ -40,11 +41,54 @@ static void set_decision(const char *value)
 
 static void inference_task(void *arg)
 {
-    vTaskDelay(pdMS_TO_TICKS(3000));
     (void)arg;
+
+    static bool did_model_smoke_test = false;
+    static uint8_t test_input[64 * 64];
+
     s_status.running = true;
 
+    /*
+     * Give camera + Wi-Fi init a little time to settle before continuous capture.
+     */
+    vTaskDelay(pdMS_TO_TICKS(3000));
+
     while (1) {
+        /*
+         * ------------------------------------------------------------
+         * Milestone 7A smoke test:
+         * Prove the TFLite Micro model loads and invokes successfully.
+         * This does NOT yet use live camera tensors.
+         * ------------------------------------------------------------
+         */
+        if (!did_model_smoke_test) {
+            memset(test_input, 0, sizeof(test_input));
+
+            float person_score = 0.0f;
+            esp_err_t model_err = model_runner_infer_u8(
+                test_input,
+                sizeof(test_input),
+                &person_score
+            );
+
+            if (model_err == ESP_OK) {
+                ESP_LOGI(TAG, "model smoke test ok | score=%.4f", person_score);
+                did_model_smoke_test = true;
+            } else {
+                ESP_LOGE(TAG, "model smoke test failed");
+                set_decision("model_error");
+                vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
+                continue;
+            }
+        }
+
+        /*
+         * ------------------------------------------------------------
+         * Existing live camera heuristic path
+         * Keep this active until we wire real camera preprocessing
+         * into the TFLite model in Milestone 7B.
+         * ------------------------------------------------------------
+         */
         if (!camera_service_is_ready()) {
             set_decision("camera_not_ready");
             vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
@@ -64,6 +108,10 @@ static void inference_task(void *arg)
         const size_t frame_len = fb->len;
         s_status.last_frame_len = frame_len;
 
+        /*
+         * Warmup phase:
+         * Build an initial baseline from frame sizes.
+         */
         if (!s_status.warmup_complete) {
             if (s_status.sample_count == 0) {
                 s_baseline_len = (float)frame_len;
@@ -81,7 +129,8 @@ static void inference_task(void *arg)
             if (s_status.sample_count >= EDGEGUARD_INFERENCE_WARMUP_FRAMES) {
                 s_status.warmup_complete = true;
                 set_decision("armed");
-                ESP_LOGI(TAG, "warmup complete | baseline=%u bytes", (unsigned)s_status.baseline_frame_len);
+                ESP_LOGI(TAG, "warmup complete | baseline=%u bytes",
+                         (unsigned)s_status.baseline_frame_len);
             } else {
                 set_decision("warming_up");
             }
@@ -91,11 +140,17 @@ static void inference_task(void *arg)
             continue;
         }
 
+        /*
+         * Heuristic score from frame-length change ratio.
+         */
         const float baseline = (s_baseline_len > 1.0f) ? s_baseline_len : (float)frame_len;
         const float delta_ratio = fabsf((float)frame_len - baseline) / baseline;
 
         s_status.last_score = (0.70f * s_status.last_score) + (0.30f * delta_ratio);
 
+        /*
+         * Slowly adapt the baseline when scene is stable again.
+         */
         if (s_status.last_score < EDGEGUARD_INFERENCE_RESET_THRESHOLD) {
             s_baseline_len =
                 (EDGEGUARD_INFERENCE_BASELINE_ALPHA * s_baseline_len) +
@@ -156,6 +211,8 @@ esp_err_t inference_engine_init(void)
         ESP_LOGW(TAG, "already initialized");
         return ESP_OK;
     }
+
+    ESP_RETURN_ON_ERROR(model_runner_init(), TAG, "model_runner_init failed");
 
     BaseType_t ok = xTaskCreate(
         inference_task,

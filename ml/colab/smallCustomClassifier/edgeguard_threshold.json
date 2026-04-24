@@ -1,0 +1,12 @@
+{
+  "deployment_threshold": 0.15,
+  "class_names": [
+    "empty",
+    "person"
+  ],
+  "label_mapping": {
+    "0": "empty",
+    "1": "person"
+  },
+  "decision_rule": "person_detected = score >= 0.15"
+}

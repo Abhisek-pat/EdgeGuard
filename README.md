@@ -48,3 +48,7 @@ idf.py monitor
  # change the below lines as per your configuration
  #define EDGEGUARD_WIFI_SSID             "xxxxx_2.4G"
 #define EDGEGUARD_WIFI_PASSWORD         "xxxxxxxxxx"
+
+python tools/capture_dataset.py --base-url http://192.168.1.207 --label empty --count 200 --delay 1.2
+
+python tools/capture_dataset.py --base-url http://192.168.1.207 --label person --count 200 --delay 1.2

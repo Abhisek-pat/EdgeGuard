@@ -23,6 +23,8 @@ static const char *TAG = "web_server";
 static httpd_handle_t s_server = NULL;
 static TaskHandle_t s_web_task_handle = NULL;
 
+static esp_err_t capture_jpg_get_handler(httpd_req_t *req);
+
 static const char *INDEX_HTML =
 "<!doctype html>"
 "<html><head>"
@@ -214,7 +216,7 @@ static esp_err_t start_http_server(void)
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = EDGEGUARD_HTTP_SERVER_PORT;
-    config.max_uri_handlers = 10;
+    config.max_uri_handlers = 12;
     config.stack_size = 10240;
 
     ESP_RETURN_ON_ERROR(httpd_start(&s_server, &config), TAG, "httpd_start failed");
@@ -240,9 +242,17 @@ static esp_err_t start_http_server(void)
         .user_ctx = NULL
     };
 
+    httpd_uri_t capture_jpg = {
+        .uri = "/capture.jpg",
+        .method = HTTP_GET,
+        .handler = capture_jpg_get_handler,
+        .user_ctx = NULL
+     };
+
     ESP_RETURN_ON_ERROR(httpd_register_uri_handler(s_server, &root), TAG, "register / failed");
     ESP_RETURN_ON_ERROR(httpd_register_uri_handler(s_server, &status), TAG, "register /api/status failed");
     ESP_RETURN_ON_ERROR(httpd_register_uri_handler(s_server, &test_event), TAG, "register /api/test_event failed");
+    ESP_RETURN_ON_ERROR(httpd_register_uri_handler(s_server, &capture_jpg), TAG, "register /capture.jpg failed");
 
     ESP_LOGI(TAG, "dashboard started on http://%s:%d", network_manager_get_ip_addr(), EDGEGUARD_HTTP_SERVER_PORT);
     return ESP_OK;
@@ -296,4 +306,27 @@ esp_err_t web_server_init(void)
 
     ESP_LOGI(TAG, "dashboard task initialized");
     return ESP_OK;
+}
+
+static esp_err_t capture_jpg_get_handler(httpd_req_t *req)
+{
+    camera_fb_t *fb = camera_service_get_frame();
+    if (fb == NULL) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "camera capture failed");
+        return ESP_FAIL;
+    }
+
+    if (fb->format != PIXFORMAT_JPEG) {
+        camera_service_return_frame(fb);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "frame is not jpeg");
+        return ESP_FAIL;
+    }
+
+    httpd_resp_set_type(req, "image/jpeg");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+    esp_err_t err = httpd_resp_send(req, (const char *)fb->buf, fb->len);
+    camera_service_return_frame(fb);
+    return err;
 }
