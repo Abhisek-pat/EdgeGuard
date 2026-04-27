@@ -25,6 +25,7 @@ typedef struct
 
 static QueueHandle_t s_event_queue = NULL;
 static TaskHandle_t s_event_task_handle = NULL;
+
 static event_manager_status_t s_status = {
     .initialized = false,
     .accepted_events = 0,
@@ -34,12 +35,38 @@ static event_manager_status_t s_status = {
     .last_event_name = {0},
 };
 
+static edgeguard_recent_event_t s_history[EDGEGUARD_EVENT_HISTORY_LEN];
+static size_t s_history_count = 0;
+static size_t s_history_write_idx = 0;
+
 static bool cooldown_active(uint64_t now_ms)
 {
     if (s_status.last_event_ts_ms == 0) {
         return false;
     }
     return (now_ms - s_status.last_event_ts_ms) < EDGEGUARD_EVENT_COOLDOWN_MS;
+}
+
+static void record_recent_event(
+    const char *name,
+    float confidence,
+    bool accepted,
+    bool is_test,
+    uint64_t timestamp_ms)
+{
+    edgeguard_recent_event_t *slot = &s_history[s_history_write_idx];
+
+    memset(slot, 0, sizeof(*slot));
+    strlcpy(slot->name, name, sizeof(slot->name));
+    slot->confidence = confidence;
+    slot->accepted = accepted;
+    slot->is_test = is_test;
+    slot->timestamp_ms = timestamp_ms;
+
+    s_history_write_idx = (s_history_write_idx + 1) % EDGEGUARD_EVENT_HISTORY_LEN;
+    if (s_history_count < EDGEGUARD_EVENT_HISTORY_LEN) {
+        s_history_count++;
+    }
 }
 
 static void event_manager_task(void *arg)
@@ -57,6 +84,15 @@ static void event_manager_task(void *arg)
 
         if (cooldown_active(now_ms)) {
             s_status.ignored_events++;
+
+            record_recent_event(
+                event.event_name,
+                event.confidence,
+                false,
+                event.is_test,
+                now_ms
+            );
+
             ESP_LOGW(
                 TAG,
                 "event ignored due to cooldown | name=%s confidence=%.2f ignored=%" PRIu32,
@@ -71,6 +107,14 @@ static void event_manager_task(void *arg)
         s_status.last_event_ts_ms = now_ms;
         s_status.last_event_confidence = event.confidence;
         strlcpy(s_status.last_event_name, event.event_name, sizeof(s_status.last_event_name));
+
+        record_recent_event(
+            event.event_name,
+            event.confidence,
+            true,
+            event.is_test,
+            now_ms
+        );
 
         app_state_increment_event_count();
         app_state_set_last_event_ms((uint32_t)now_ms);
@@ -154,4 +198,20 @@ esp_err_t event_manager_init(void)
 const event_manager_status_t *event_manager_get_status(void)
 {
     return &s_status;
+}
+
+size_t event_manager_get_recent_events(edgeguard_recent_event_t *out_events, size_t max_items)
+{
+    if (out_events == NULL || max_items == 0) {
+        return 0;
+    }
+
+    const size_t n = (s_history_count < max_items) ? s_history_count : max_items;
+
+    for (size_t i = 0; i < n; ++i) {
+        size_t idx = (s_history_write_idx + EDGEGUARD_EVENT_HISTORY_LEN - 1 - i) % EDGEGUARD_EVENT_HISTORY_LEN;
+        out_events[i] = s_history[idx];
+    }
+
+    return n;
 }

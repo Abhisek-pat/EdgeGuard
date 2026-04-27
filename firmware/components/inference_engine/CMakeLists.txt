@@ -2,6 +2,7 @@ idf_component_register(
     SRCS
         "inference_engine.c"
         "model_runner.cpp"
+        "preprocess.c"
     INCLUDE_DIRS
         "include"
         "."

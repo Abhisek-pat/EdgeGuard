@@ -33,7 +33,7 @@ static const char *TAG = "camera_service";
 static bool s_camera_ready = false;
 static camera_service_status_t s_status = {
     .ready = false,
-    .pixel_format = PIXFORMAT_JPEG,
+    .pixel_format = PIXFORMAT_GRAYSCALE,
     .frame_size = FRAMESIZE_QVGA,
     .fb_count = 1,
     .last_frame_len = 0,
@@ -68,11 +68,24 @@ static camera_config_t build_camera_config(bool has_psram)
         .ledc_timer = LEDC_TIMER_0,
         .ledc_channel = LEDC_CHANNEL_0,
 
-        .pixel_format = PIXFORMAT_JPEG,
+        /*
+         * 7B inference mode:
+         * raw grayscale frames instead of JPEG
+         */
+        .pixel_format = PIXFORMAT_GRAYSCALE,
         .frame_size = has_psram ? FRAMESIZE_QVGA : FRAMESIZE_QQVGA,
-        .jpeg_quality = has_psram ? 12 : 18,
-        .fb_count = has_psram ? 2 : 1,
-        .grab_mode = has_psram ? CAMERA_GRAB_LATEST : CAMERA_GRAB_WHEN_EMPTY,
+
+        /*
+         * jpeg_quality is ignored in grayscale mode, but keep a valid value.
+         */
+        .jpeg_quality = 12,
+
+        /*
+         * Raw grayscale is more memory-sensitive than JPEG.
+         * Use a single framebuffer for stability.
+         */
+        .fb_count = 1,
+        .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
     };
 
     return config;

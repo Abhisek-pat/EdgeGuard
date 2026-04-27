@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Abhisek Pattanaik
+Copyright (c) 2026 EdgeGuard contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,36 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+----------------------------------------------------------------
+Learning / Non-Production Use Disclaimer
+----------------------------------------------------------------
+
+EdgeGuard is a learning and demonstration project. It is not production-ready
+software and has not been validated for safety-critical, security-critical,
+commercial, or unattended real-world deployments.
+
+Use this project at your own risk. The authors and contributors are not
+responsible for any loss, damage, malfunction, security issue, false alert,
+missed detection, or other consequence resulting from the use, misuse, or
+deployment of this software.
+
+Before using this project in any real environment, you are responsible for
+reviewing, testing, hardening, and validating the full system for your own use
+case.
+
+----------------------------------------------------------------
+Third-Party Components Notice
+----------------------------------------------------------------
+
+This project may use or link against third-party libraries, SDKs, tools,
+models, or frameworks, including but not limited to ESP-IDF, TensorFlow Lite
+Micro, MQTT tooling, and other open-source dependencies.
+
+Those third-party components remain subject to their own respective licenses.
+This LICENSE.txt applies only to the original EdgeGuard project code and
+project-authored assets, and does not replace or override the licenses of any
+third-party dependency.
+
+When redistributing this project, please review and comply with all applicable
+third-party license terms.

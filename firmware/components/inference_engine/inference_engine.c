@@ -1,6 +1,6 @@
 #include "inference_engine.h"
 
-#include <math.h>
+#include <inttypes.h>
 #include <string.h>
 
 #include "app_config.h"
@@ -12,10 +12,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "model_runner.h"
+#include "preprocess.h"
 
 static const char *TAG = "inference_engine";
 
 static TaskHandle_t s_inference_task_handle = NULL;
+
 static inference_engine_status_t s_status = {
     .initialized = false,
     .running = false,
@@ -27,16 +29,27 @@ static inference_engine_status_t s_status = {
     .baseline_frame_len = 0,
     .last_frame_len = 0,
     .last_score = 0.0f,
-    .trigger_threshold = EDGEGUARD_INFERENCE_TRIGGER_THRESHOLD,
+    .trigger_threshold = EDGEGUARD_PERSON_DETECT_THRESHOLD,
     .last_inference_time_us = 0,
     .last_decision = "idle",
 };
 
-static float s_baseline_len = 0.0f;
+static uint8_t s_model_input[EDGEGUARD_MODEL_INPUT_WIDTH * EDGEGUARD_MODEL_INPUT_HEIGHT];
 
 static void set_decision(const char *value)
 {
     strlcpy(s_status.last_decision, value, sizeof(s_status.last_decision));
+}
+
+static float clamp01(float x)
+{
+    if (x < 0.0f) {
+        return 0.0f;
+    }
+    if (x > 1.0f) {
+        return 1.0f;
+    }
+    return x;
 }
 
 static void inference_task(void *arg)
@@ -44,35 +57,32 @@ static void inference_task(void *arg)
     (void)arg;
 
     static bool did_model_smoke_test = false;
-    static uint8_t test_input[64 * 64];
+    static uint8_t smoke_test_input[EDGEGUARD_MODEL_INPUT_WIDTH * EDGEGUARD_MODEL_INPUT_HEIGHT];
 
     s_status.running = true;
 
     /*
-     * Give camera + Wi-Fi init a little time to settle before continuous capture.
+     * Let camera and Wi-Fi settle before continuous inference.
      */
     vTaskDelay(pdMS_TO_TICKS(3000));
 
     while (1) {
         /*
-         * ------------------------------------------------------------
-         * Milestone 7A smoke test:
-         * Prove the TFLite Micro model loads and invokes successfully.
-         * This does NOT yet use live camera tensors.
-         * ------------------------------------------------------------
+         * One-time TFLM smoke test.
+         * This proves the model can invoke on-device before we rely on live frames.
          */
         if (!did_model_smoke_test) {
-            memset(test_input, 0, sizeof(test_input));
+            memset(smoke_test_input, 0, sizeof(smoke_test_input));
 
-            float person_score = 0.0f;
-            esp_err_t model_err = model_runner_infer_u8(
-                test_input,
-                sizeof(test_input),
-                &person_score
+            float smoke_score = 0.0f;
+            esp_err_t smoke_err = model_runner_infer_u8(
+                smoke_test_input,
+                sizeof(smoke_test_input),
+                &smoke_score
             );
 
-            if (model_err == ESP_OK) {
-                ESP_LOGI(TAG, "model smoke test ok | score=%.4f", person_score);
+            if (smoke_err == ESP_OK) {
+                ESP_LOGI(TAG, "model smoke test ok | score=%.4f", smoke_score);
                 did_model_smoke_test = true;
             } else {
                 ESP_LOGE(TAG, "model smoke test failed");
@@ -82,13 +92,6 @@ static void inference_task(void *arg)
             }
         }
 
-        /*
-         * ------------------------------------------------------------
-         * Existing live camera heuristic path
-         * Keep this active until we wire real camera preprocessing
-         * into the TFLite model in Milestone 7B.
-         * ------------------------------------------------------------
-         */
         if (!camera_service_is_ready()) {
             set_decision("camera_not_ready");
             vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
@@ -96,8 +99,8 @@ static void inference_task(void *arg)
         }
 
         int64_t t0 = esp_timer_get_time();
-        camera_fb_t *fb = camera_service_get_frame();
 
+        camera_fb_t *fb = camera_service_get_frame();
         if (fb == NULL) {
             s_status.dropped_frame_count++;
             set_decision("capture_failed");
@@ -105,97 +108,91 @@ static void inference_task(void *arg)
             continue;
         }
 
-        const size_t frame_len = fb->len;
-        s_status.last_frame_len = frame_len;
+        s_status.last_frame_len = fb->len;
 
-        /*
-         * Warmup phase:
-         * Build an initial baseline from frame sizes.
-         */
-        if (!s_status.warmup_complete) {
-            if (s_status.sample_count == 0) {
-                s_baseline_len = (float)frame_len;
-            } else {
-                s_baseline_len =
-                    ((s_baseline_len * (float)s_status.sample_count) + (float)frame_len) /
-                    (float)(s_status.sample_count + 1);
-            }
+        esp_err_t prep_err = preprocess_resize_grayscale(
+            fb,
+            s_model_input,
+            sizeof(s_model_input),
+            EDGEGUARD_MODEL_INPUT_WIDTH,
+            EDGEGUARD_MODEL_INPUT_HEIGHT
+        );
 
-            s_status.sample_count++;
-            s_status.baseline_frame_len = (size_t)s_baseline_len;
-            s_status.last_score = 0.0f;
-            s_status.last_inference_time_us = esp_timer_get_time() - t0;
-
-            if (s_status.sample_count >= EDGEGUARD_INFERENCE_WARMUP_FRAMES) {
-                s_status.warmup_complete = true;
-                set_decision("armed");
-                ESP_LOGI(TAG, "warmup complete | baseline=%u bytes",
-                         (unsigned)s_status.baseline_frame_len);
-            } else {
-                set_decision("warming_up");
-            }
-
+        if (prep_err != ESP_OK) {
             camera_service_return_frame(fb);
+            s_status.dropped_frame_count++;
+            set_decision("preprocess_failed");
             vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
             continue;
         }
 
-        /*
-         * Heuristic score from frame-length change ratio.
-         */
-        const float baseline = (s_baseline_len > 1.0f) ? s_baseline_len : (float)frame_len;
-        const float delta_ratio = fabsf((float)frame_len - baseline) / baseline;
+        float person_score = 0.0f;
+        esp_err_t infer_err = model_runner_infer_u8(
+            s_model_input,
+            sizeof(s_model_input),
+            &person_score
+        );
 
-        s_status.last_score = (0.70f * s_status.last_score) + (0.30f * delta_ratio);
+        s_status.last_inference_time_us = esp_timer_get_time() - t0;
 
-        /*
-         * Slowly adapt the baseline when scene is stable again.
-         */
-        if (s_status.last_score < EDGEGUARD_INFERENCE_RESET_THRESHOLD) {
-            s_baseline_len =
-                (EDGEGUARD_INFERENCE_BASELINE_ALPHA * s_baseline_len) +
-                ((1.0f - EDGEGUARD_INFERENCE_BASELINE_ALPHA) * (float)frame_len);
+        camera_service_return_frame(fb);
+
+        if (infer_err != ESP_OK) {
+            s_status.dropped_frame_count++;
+            set_decision("infer_failed");
+            vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
+            continue;
         }
 
-        s_status.baseline_frame_len = (size_t)s_baseline_len;
+        person_score = clamp01(person_score);
+        s_status.last_score = person_score;
         s_status.sample_count++;
+        s_status.baseline_frame_len = 0; /* no longer used in model-based path */
+
+        /*
+         * Warmup phase:
+         * ignore early frames while exposure and scene settle.
+         */
+        if (!s_status.warmup_complete) {
+            if (s_status.sample_count >= EDGEGUARD_INFERENCE_WARMUP_FRAMES) {
+                s_status.warmup_complete = true;
+                set_decision("armed");
+                ESP_LOGI(TAG, "model warmup complete | threshold=%.2f",
+                         EDGEGUARD_PERSON_DETECT_THRESHOLD);
+            } else {
+                set_decision("warming_up");
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(EDGEGUARD_INFERENCE_PERIOD_MS));
+            continue;
+        }
 
         bool should_submit_event = false;
 
         if (!s_status.trigger_latched &&
-            s_status.last_score >= EDGEGUARD_INFERENCE_TRIGGER_THRESHOLD) {
+            person_score >= EDGEGUARD_PERSON_DETECT_THRESHOLD) {
             s_status.trigger_latched = true;
             s_status.trigger_count++;
             should_submit_event = true;
             set_decision("triggered");
         } else if (s_status.trigger_latched &&
-                   s_status.last_score <= EDGEGUARD_INFERENCE_RESET_THRESHOLD) {
+                   person_score <= EDGEGUARD_PERSON_RESET_THRESHOLD) {
             s_status.trigger_latched = false;
             set_decision("armed");
         } else {
             set_decision(s_status.trigger_latched ? "latched" : "monitoring");
         }
 
-        s_status.last_inference_time_us = esp_timer_get_time() - t0;
-
-        camera_service_return_frame(fb);
-
         if (should_submit_event) {
-            float confidence = s_status.last_score;
-            if (confidence > 1.0f) {
-                confidence = 1.0f;
-            }
-
-            esp_err_t err = event_manager_submit_event("activity_detected", confidence, false);
+            esp_err_t err = event_manager_submit_event("person_detected", person_score, false);
             if (err != ESP_OK) {
-                ESP_LOGW(TAG, "failed to submit live event");
+                ESP_LOGW(TAG, "failed to submit person_detected event");
             } else {
                 ESP_LOGI(
                     TAG,
-                    "live trigger | score=%.3f baseline=%u frame=%u triggers=%" PRIu32,
-                    s_status.last_score,
-                    (unsigned)s_status.baseline_frame_len,
-                    (unsigned)s_status.last_frame_len,
+                    "person trigger | score=%.3f threshold=%.2f triggers=%" PRIu32,
+                    person_score,
+                    EDGEGUARD_PERSON_DETECT_THRESHOLD,
                     s_status.trigger_count
                 );
             }
@@ -214,10 +211,24 @@ esp_err_t inference_engine_init(void)
 
     ESP_RETURN_ON_ERROR(model_runner_init(), TAG, "model_runner_init failed");
 
+    model_runner_info_t info = {0};
+    ESP_RETURN_ON_ERROR(model_runner_get_info(&info), TAG, "model_runner_get_info failed");
+
+    ESP_RETURN_ON_FALSE(
+        info.input_width == EDGEGUARD_MODEL_INPUT_WIDTH &&
+        info.input_height == EDGEGUARD_MODEL_INPUT_HEIGHT &&
+        info.input_channels == 1,
+        ESP_FAIL,
+        TAG,
+        "model input shape mismatch"
+    );
+
+    s_status.trigger_threshold = EDGEGUARD_PERSON_DETECT_THRESHOLD;
+
     BaseType_t ok = xTaskCreate(
         inference_task,
         "edgeguard_infer",
-        4096,
+        6144,
         NULL,
         5,
         &s_inference_task_handle
@@ -225,7 +236,14 @@ esp_err_t inference_engine_init(void)
     ESP_RETURN_ON_FALSE(ok == pdPASS, ESP_ERR_NO_MEM, TAG, "failed to create inference task");
 
     s_status.initialized = true;
-    ESP_LOGI(TAG, "initialized");
+    ESP_LOGI(
+        TAG,
+        "initialized | model_input=%dx%dx%d threshold=%.2f",
+        info.input_width,
+        info.input_height,
+        info.input_channels,
+        s_status.trigger_threshold
+    );
     return ESP_OK;
 }
 
