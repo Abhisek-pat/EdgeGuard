@@ -45,6 +45,8 @@ Most “AI at the edge” demos stop at model training. EdgeGuard goes further b
 - **Local visual observability** without depending on cloud infrastructure
 - **Threshold tuning workflow** from Colab to firmware deployment
 
+![EdgeGuard SystemFlow](docs/images/edgeGuard-system-flow.png)
+
 ## System architecture
 
 ```text
